@@ -1,0 +1,38 @@
+name: Lines of Code Report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday at midnight UTC
+
+jobs:
+  count-loc:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install cloc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cloc
+
+      - name: Generate Lines of Code Report
+        id: loc
+        run: |
+          echo "=== Lines of Code Report ===" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Full Report:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cloc . --fullpath --not-match-d=".git|node_modules|.venv|venv|__pycache__|vendor|\.next" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+      - name: Display Summary
+        run: |
+          echo "Lines of Code Summary"
+          echo "===================="
+          cloc . --fullpath --not-match-d=".git|node_modules|.venv|venv|__pycache__|vendor|\.next" --quiet
